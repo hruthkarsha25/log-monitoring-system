@@ -1,0 +1,7 @@
+package com.project.logmonitoringsystem.auth.dto;
+
+public record LoginResponseDTO(
+        String accessToken,
+        String refreshToken
+) {
+}
