@@ -34,4 +34,7 @@ public interface LogRepository extends JpaRepository<LogEvent, Long>, JpaSpecifi
     List<Object[]> countLogsByService();
 
 
+    List<LogEvent> findByEndpoint(String path);
+    
+    List<LogEvent> findByUsername(String username);
 }

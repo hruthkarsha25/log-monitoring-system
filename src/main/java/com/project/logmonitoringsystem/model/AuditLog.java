@@ -2,12 +2,14 @@ package com.project.logmonitoringsystem.model;
 
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "audit_logs")
 @Builder
+@Data
 public class AuditLog {
 
     @Id
