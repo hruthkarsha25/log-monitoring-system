@@ -1,4 +1,4 @@
-🚀 Log Monitoring System
+# 🚀 Log Monitoring System
 
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green)
@@ -7,17 +7,22 @@
 ![Docker](https://img.shields.io/badge/Docker-Containerized-blue)
 ![Security](https://img.shields.io/badge/Security-JWT%20%2B%20RBAC-red)
 ![Maven](https://img.shields.io/badge/Maven-Build-blue)
-![GitHub repo size](https://img.shields.io/github/repo-size/hruthkarsha25/log-monitoring-system)
-![GitHub last commit](https://img.shields.io/github/last-commit/hruthkarsha25/log-monitoring-system)
 
 A production-style backend system for capturing, processing, and monitoring application logs with secure authentication, role-based access control, and event-driven streaming using Kafka.
 
-📌 Overview
+---
+
+## 📌 Overview
+
 The **Log Monitoring System** simulates how modern distributed backend systems handle logging for security, analytics, monitoring, and debugging purposes.
+
 It captures user activities such as **registration, login, and API requests**, processes them securely, and stores them for auditing and analysis.
 
-🏗️ System Architecture
+---
 
+## 🏗️ System Architecture
+
+```
 User
  │
  ▼
@@ -39,8 +44,12 @@ Spring Boot REST APIs
  │                 │
  │                 ▼
  │               MySQL
+```
 
-✨ Features
+---
+
+## ✨ Features
+
 * 🔐 User Authentication (Register / Login)
 * 🛡️ JWT-based Secure Access
 * 👥 Role-Based Access Control (RBAC)
@@ -50,7 +59,10 @@ Spring Boot REST APIs
 * 🔍 Filtering logs by user, endpoint, method, and timestamp
 * 🧠 Secure password storage using BCrypt
 
-🧰 Tech Stack
+---
+
+## 🧰 Tech Stack
+
 * ☕ Java 21
 * 🌱 Spring Boot
 * 🔐 Spring Security + JWT
@@ -60,104 +72,151 @@ Spring Boot REST APIs
 * 🧪 Postman
 * 🐳 Docker + Docker Compose
 
-🔐 Security
+---
+
+## 🔐 Security
+
 * Passwords encrypted using **BCrypt**
 * JWT token-based authentication for secured endpoints
 * Role-based authorization (**USER / ADMIN**)
 * Unauthorized access attempts are logged separately
 
-📡 API Endpoints
+---
 
-Authentication APIs
+## 📡 API Endpoints
 
+### Authentication APIs
+
+```
 POST /auth/register     → Register new user
 POST /auth/login        → Login and receive JWT token
 POST /auth/refresh      → Refresh JWT token
+```
 
-Log APIs
+### Log APIs
 
+```
 GET /logs/all           → Fetch all logs (ADMIN only)
 GET /logs/user/{email}  → Fetch logs for specific user
 GET /logs/stats         → View usage statistics
+```
 
-🐳 Docker Deployment
-The application is fully containerized with **Docker + Docker Compose** to ensure a consistent setup across environments.
+---
 
-Services included:
+## 🐳 Docker Deployment
+
+The application is fully containerized using **Docker + Docker Compose** for consistent setup across environments.
+
+### Services included:
 
 * Spring Boot Application
 * Kafka + Zookeeper
 * MySQL Database
 
-▶️ Run the Project
+---
 
-  git clone https://github.com/hruthkarsha25/log-monitoring-system.git
-  cd log-monitoring-system
+## ▶️ Run the Project
 
-⚙️ Configure Environment
+```bash
+git clone https://github.com/hruthkarsha25/log-monitoring-system.git
+cd log-monitoring-system
+```
 
-Update docker-compose.yml with:
+---
+
+## ⚙️ Configure Environment
+
+Update `docker-compose.yml` (or `application.yml`) with:
 
 * MySQL database name
 * MySQL username & password
-* Kafka configuration
+* Kafka configuration (if required)
 
-🐳 Start Application
+---
 
-  docker-compose up --build
+## 🐳 Start Application
 
-⚙️ Local Setup (Without Docker)
-1. Clone the repository
+```bash
+docker-compose up --build
+```
 
-  git clone https://github.com/hruthkarsha25/log-monitoring-system.git
-  cd log-monitoring-system
+---
 
-2. Configure database
+## ⚙️ Local Setup (Without Docker)
 
-  spring.datasource.url=jdbc:mysql://localhost:3306/log_monitoring_db
-  spring.datasource.username=root
-  spring.datasource.password=your_password
+### 1. Clone repository
 
-3. Start dependencies
+```bash
+git clone https://github.com/hruthkarsha25/log-monitoring-system.git
+cd log-monitoring-system
+```
+
+### 2. Configure database
+
+```yaml
+spring.datasource.url=jdbc:mysql://localhost:3306/log_monitoring_db
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+jwt.secret=secret_key
+```
+
+### 3. Start dependencies
 
 * Kafka
 * MySQL
 
-4. Run application
-  
-  mvn spring-boot:run
+### 4. Run application
 
-📘 API Documentation (Swagger UI)
+```bash
+mvn spring-boot:run
+```
+
+---
+
+## 📘 API Documentation (Swagger UI)
+
 The project includes **Swagger UI** for interactive API testing.
-🔗 Swagger URL
-  
-  http://localhost:8080/swagger-ui/index.html
 
-📄 OpenAPI Docs
+### 🔗 Swagger URL
 
-  http://localhost:8080/v3/api-docs
+```
+http://localhost:8080/swagger-ui/index.html
+```
 
-✨ Features
+### 📄 OpenAPI Docs
 
-* Interactive API testing from the browser
+```
+http://localhost:8080/v3/api-docs
+```
+
+### ✨ Features
+
+* Interactive API testing from browser
 * JWT authentication support
 * Easy visualization of endpoints
 * Developer-friendly debugging
 
-💡 Project Highlights
+---
+
+## 💡 Project Highlights
 
 * Built using **event-driven architecture (Kafka)**
 * Secure authentication using **JWT + RBAC**
+* Scalable backend architecture
 * Fully containerized using Docker
 
-📈 Future Enhancements
+---
+
+## 📈 Future Enhancements
 
 * ELK Stack integration (Elasticsearch + Logstash + Kibana)
 * Real-time log monitoring dashboard (React-based UI)
 * Rate limiting per user (API protection)
 * Distributed tracing for microservices expansion
 
- 🧠 What this project demonstrates
+---
+
+## 🧠 What this project demonstrates
 
 * Backend system design thinking
 * Security-first architecture (JWT + RBAC)
