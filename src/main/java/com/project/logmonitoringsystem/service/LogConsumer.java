@@ -5,6 +5,7 @@ import com.project.logmonitoringsystem.enums.AlertType;
 import com.project.logmonitoringsystem.enums.LogLevel;
 import com.project.logmonitoringsystem.enums.Severity;
 import com.project.logmonitoringsystem.model.LogEvent;
+import com.project.logmonitoringsystem.model.LogEventDocument;
 import com.project.logmonitoringsystem.repository.LogRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,7 @@ public class LogConsumer {
 
     private final LogRepository logRepository;
     private static final Logger log = LoggerFactory.getLogger(LogConsumer.class);
+    private final ElasticsearchClient elasticsearchClient;
 
     @Value("${app.service.name}")
     private String serviceName;
@@ -53,6 +56,7 @@ public class LogConsumer {
             log.info("DB_QUERY executed table=log_events operation=insert level={} endpoint={}",
                 logEvent.getLevel(), logEvent.getEndpoint());
             logRepository.save(logEvent);
+            sendToElasticsearch(logEvent);
             log.info("LOG_EVENT_PERSISTED logEventId={} level={} endpoint={}",
                 logEvent.getId(), logEvent.getLevel(), logEvent.getEndpoint());
 
@@ -214,6 +218,33 @@ public class LogConsumer {
             log.error("ENDPOINT_TRAFFIC_HANDLING_FAILED endpoint={} exception={}",
                 logEvent.getEndpoint(), e.getMessage());
             throw e;
+        }
+    }
+
+    private void sendToElasticsearch(LogEvent logEvent) {
+        try {
+            LogEventDocument doc = new LogEventDocument();
+
+            doc.setServiceName(logEvent.getServiceName());
+            doc.setLevel(logEvent.getLevel().name());
+            doc.setMessage(logEvent.getMessage());
+            doc.setEndpoint(logEvent.getEndpoint());
+            doc.setMethod(logEvent.getMethod());
+            doc.setUsername(logEvent.getUsername());
+            doc.setCreatedAt(logEvent.getCreatedAt());
+            doc.setTimestamp(logEvent.getCreatedAt());
+
+            elasticsearchClient.index(i -> i
+                    .index("events-log-index")
+                    .document(doc)
+            );
+
+            log.info("SENT_TO_ELASTICSEARCH endpoint={} level={}",
+                    logEvent.getEndpoint(), logEvent.getLevel());
+
+        } catch (Exception e) {
+            log.error("ELASTICSEARCH_INSERT_FAILED reason={}", e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 }

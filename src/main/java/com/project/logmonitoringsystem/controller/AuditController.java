@@ -1,7 +1,7 @@
 package com.project.logmonitoringsystem.controller;
 
 import com.project.logmonitoringsystem.model.AuditLog;
-import com.project.logmonitoringsystem.service.AuditLogService;
+import com.project.logmonitoringsystem.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuditController {
 
-    private final AuditLogService auditLogService;
+    private final AuditLogRepository auditLogRepository;
+
     private static final Logger log = LoggerFactory.getLogger(AuditController.class);
 
     @GetMapping("/logs")
@@ -25,7 +26,7 @@ public class AuditController {
     public List<AuditLog> getAuditLogs() {
         log.info("API_LOG endpoint=/audit/logs method=GET authorization=ADMIN");
         try {
-            List<AuditLog> result = auditLogService.getAllAuditLogs();
+            List<AuditLog> result = auditLogRepository.findAll();
             log.info("DB_QUERY executed table=audit_logs operation=fetch_all count={}", result.size());
             return result;
         } catch (Exception e) {
