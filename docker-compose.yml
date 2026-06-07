@@ -98,6 +98,8 @@ services:
         condition: service_started
       logstash:
         condition: service_started
+      elasticsearch:
+        condition: service_healthy
 
     ports:
       - "8080:8080"
@@ -106,6 +108,8 @@ services:
       SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
 
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 

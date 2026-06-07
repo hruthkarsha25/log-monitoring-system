@@ -1,8 +1,10 @@
 package com.project.logmonitoringsystem.security.config;
 
 import com.project.logmonitoringsystem.auth.repository.UserRepository;
+import com.project.logmonitoringsystem.enums.LogLevel;
 import com.project.logmonitoringsystem.security.service.CustomUserDetailsService;
 import com.project.logmonitoringsystem.security.service.JwtService;
+import com.project.logmonitoringsystem.service.EventLoggingService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +24,8 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
     private final CustomUserDetailsService customUserDetailsService;
+    private final EventLoggingService eventLoggingService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -47,7 +49,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        String username = jwtService.extractUsername(token);
+        String username = null;
+
+        try {
+            username = jwtService.extractUsername(token);
+        } catch (Exception e) {
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.WARN,
+                    "JWT_INVALID",
+                    request.getRequestURI(),
+                    request.getMethod(),
+                    username
+            );
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
@@ -58,6 +73,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                eventLoggingService.log(
+                        "auth-service",
+                        LogLevel.WARN,
+                        "JWT_EXPIRED_OR_INVALID",
+                        request.getRequestURI(),
+                        request.getMethod(),
+                        username
+                );
             }
         }
         filterChain.doFilter(request, response);

@@ -3,10 +3,14 @@ package com.project.logmonitoringsystem.alert;
 import com.project.logmonitoringsystem.alert.entity.Alert;
 import com.project.logmonitoringsystem.enums.AlertStatus;
 import com.project.logmonitoringsystem.enums.AlertType;
+import com.project.logmonitoringsystem.enums.LogLevel;
 import com.project.logmonitoringsystem.enums.Severity;
+import com.project.logmonitoringsystem.service.EventLoggingService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,7 +23,7 @@ public class AlertService {
 
     private final AlertRepository alertRepository;
     private static final Logger log = LoggerFactory.getLogger(AlertService.class);
-
+    private final EventLoggingService eventLoggingService;
 
     public void createAlert(AlertType type, String message, String endpoint, Severity severity) {
         log.info("ALERT_CREATE_ATTEMPT type={} endpoint={} severity={}", type, endpoint, severity);
@@ -46,8 +50,26 @@ public class AlertService {
 
             log.info("DB_QUERY executed table=alerts operation=insert type={} endpoint={}", type, endpoint);
             alertRepository.save(alert);
+
+            eventLoggingService.log(
+                    "alert-service",
+                    LogLevel.WARN,
+                    "ALERT_CREATED",
+                    endpoint,
+                    null,
+                    null
+            );
             log.info("ALERT_CREATED type={} endpoint={} severity={} status=OPEN", type, endpoint, severity);
         } catch (Exception e) {
+
+            eventLoggingService.log(
+                    "alert-service",
+                    LogLevel.ERROR,
+                    "ALERT_CREATE_FAILED",
+                    null,
+                    null,
+                    null
+            );
             log.error("ALERT_CREATE_FAILED type={} endpoint={} exception={}", type, endpoint, e.getMessage());
             throw e;
         }
@@ -114,6 +136,18 @@ public class AlertService {
 
     public Alert alertAcknowledge(Long id) {
         log.info("ALERT_ACKNOWLEDGE_ATTEMPT alertId={}", id);
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String username = null;
+
+        if (authentication != null &&
+                authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getName())) {
+
+            username = authentication.getName();
+        }
+
         try {
             log.info("DB_QUERY executed table=alerts operation=select_by_id alertId={}", id);
             Alert alert = alertRepository.findById(id)
@@ -125,9 +159,26 @@ public class AlertService {
 
             log.info("DB_QUERY executed table=alerts operation=update alertId={} newStatus=ACKNOWLEDGED", id);
             Alert result = alertRepository.save(alert);
+
+            eventLoggingService.log(
+                    "alert-service",
+                    LogLevel.INFO,
+                    "ALERT_ACKNOWLEDGED",
+                    alert.getEndpoint(),
+                    null,
+                    username
+            );
             log.info("ALERT_ACKNOWLEDGED alertId={} previousStatus=OPEN newStatus=ACKNOWLEDGED", id);
             return result;
         } catch (Exception e) {
+            eventLoggingService.log(
+                    "alert-service",
+                    LogLevel.ERROR,
+                    "ALERT_ACKNOWLEDGE_FAILED",
+                    "/alerts/{id}/acknowledge",
+                    null,
+                    username
+            );
             log.error("ALERT_ACKNOWLEDGE_FAILED alertId={} exception={}", id, e.getMessage());
             throw e;
         }
@@ -135,6 +186,19 @@ public class AlertService {
 
     public Alert resolveAlert(Long id) {
         log.info("ALERT_RESOLVE_ATTEMPT alertId={}", id);
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String username = null;
+
+        if (authentication != null &&
+                authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getName())) {
+
+            username = authentication.getName();
+        }
+
         try {
             log.info("DB_QUERY executed table=alerts operation=select_by_id alertId={}", id);
             Alert alert = alertRepository.findById(id)
@@ -148,9 +212,27 @@ public class AlertService {
 
             log.info("DB_QUERY executed table=alerts operation=update alertId={} newStatus=RESOLVED", id);
             Alert result = alertRepository.save(alert);
+
+            eventLoggingService.log(
+                    "alert-service",
+                    LogLevel.INFO,
+                    "ALERT_RESOLVED",
+                    alert.getEndpoint(),
+                    null,
+                    null
+            );
             log.info("ALERT_RESOLVED alertId={} previousStatus=ACKNOWLEDGED newStatus=RESOLVED", id);
             return result;
         } catch (Exception e) {
+
+            eventLoggingService.log(
+                    "alert-service",
+                    LogLevel.ERROR,
+                    "ALERT_RESOLVE_FAILED",
+                    "/alerts/{id}/resolve",
+                    null,
+                    username
+            );
             log.error("ALERT_RESOLVE_FAILED alertId={} exception={}", id, e.getMessage());
             throw e;
         }

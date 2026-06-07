@@ -3,9 +3,10 @@ package com.project.logmonitoringsystem.auth.service;
 import com.project.logmonitoringsystem.auth.dto.*;
 import com.project.logmonitoringsystem.auth.model.User;
 import com.project.logmonitoringsystem.auth.repository.UserRepository;
+import com.project.logmonitoringsystem.enums.LogLevel;
 import com.project.logmonitoringsystem.exception.ResourceNotFoundException;
 import com.project.logmonitoringsystem.security.service.JwtService;
-import com.project.logmonitoringsystem.service.AuditLogService;
+import com.project.logmonitoringsystem.service.EventLoggingService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +28,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final AuditLogService auditLogService;
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private final EventLoggingService eventLoggingService;
 
     public RegisterResponseDTO registerUser(RegisterRequestDTO request) {
         log.info("REGISTRATION_ATTEMPT username={} email={}", request.username(), request.email());
@@ -54,15 +55,17 @@ public class AuthService {
             log.info("DB_QUERY executed table=users operation=insert username={}", request.username());
             User saveduser = userRepository.save(user);
 
-            auditLogService.logAction(
-                    saveduser.getUsername(),
-                    "/api/auth/register",
-                    saveduser.getEmail(),
-                    "POST"
-            );
-
             log.info("REGISTRATION_SUCCESS userId={} username={} email={}",
                 saveduser.getId(), saveduser.getUsername(), saveduser.getEmail());
+
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.INFO,
+                    "USER_REGISTERED",
+                    "/api/auth/register",
+                    "POST",
+                    saveduser.getUsername()
+            );
 
             return new RegisterResponseDTO(
                     saveduser.getId(),
@@ -71,7 +74,17 @@ public class AuthService {
                     saveduser.getRole(),
                     "User Registered Successfully"
                     );
+
         } catch (Exception e) {
+
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.ERROR,
+                    "REGISTRATION_ERROR",
+                    "/api/auth/register",
+                    "POST",
+                    request.username()
+            );
             log.error("REGISTRATION_ERROR username={} exception={} reason={}",
                 request.username(), e.getClass().getSimpleName(), e.getMessage());
             throw e;
@@ -101,16 +114,28 @@ public class AuthService {
 
             log.info("TOKENS_GENERATED userId={} accessToken_generated=true refreshToken_generated=true", user.getId());
 
-            auditLogService.logAction(
-                    user.getUsername(),
+            log.info("LOGIN_SUCCESS userId={} username={} email={}", user.getId(), user.getUsername(), user.getEmail());
+
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.INFO,
+                    "LOGIN_SUCCESS",
                     "/api/auth/login",
-                    user.getEmail(),
-                    "POST"
+                    "POST",
+                    user.getUsername()
             );
 
-            log.info("LOGIN_SUCCESS userId={} username={} email={}", user.getId(), user.getUsername(), user.getEmail());
             return new LoginResponseDTO(accessToken, refreshToken);
         } catch (Exception e) {
+
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.ERROR,
+                    "LOGIN_FAILED",
+                    "/api/auth/login",
+                    "POST",
+                    request.login()
+            );
             log.error("LOGIN_FAILED login={} exception={} reason={}",
                 request.login(), e.getClass().getSimpleName(), e.getMessage());
             throw e;
@@ -152,16 +177,28 @@ public class AuthService {
 
             log.info("NEW_ACCESS_TOKEN_GENERATED userId={} username={}", user.getId(), user.getUsername());
 
-            auditLogService.logAction(
-                    user.getUsername(),
-                    "/api/auth/refresh",
-                    user.getEmail(),
-                    "POST"
-            );
-
             log.info("TOKEN_REFRESH_SUCCESS userId={} username={}", user.getId(), user.getUsername());
+
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.INFO,
+                    "REFRESH_SUCCESS",
+                    "/api/auth/refresh",
+                    "POST",
+                    user.getUsername()
+            );
             return new RefreshTokenResponseDTO(newAccessToken);
         } catch (Exception e) {
+
+            eventLoggingService.log(
+                    "auth-service",
+                    LogLevel.ERROR,
+                    "REFRESH_FAILED",
+                    "/api/auth/refresh",
+                    "POST",
+                    jwtService.extractUsername(request.refreshToken())
+
+            );
             log.error("TOKEN_REFRESH_ERROR exception={} reason={}",
                 e.getClass().getSimpleName(), e.getMessage());
             throw e;
