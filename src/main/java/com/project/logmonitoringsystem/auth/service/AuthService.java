@@ -125,7 +125,12 @@ public class AuthService {
                     user.getUsername()
             );
 
-            return new LoginResponseDTO(accessToken, refreshToken);
+            return new LoginResponseDTO(accessToken,
+                    refreshToken,
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getRole().name());
         } catch (Exception e) {
 
             eventLoggingService.log(
