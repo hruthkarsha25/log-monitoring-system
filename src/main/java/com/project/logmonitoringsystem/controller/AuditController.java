@@ -21,8 +21,8 @@ public class AuditController {
 
     private static final Logger log = LoggerFactory.getLogger(AuditController.class);
 
-    @GetMapping("/logs")
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/logs")
     public List<AuditLog> getAuditLogs() {
         log.info("API_LOG endpoint=/audit/logs method=GET authorization=ADMIN");
         try {
