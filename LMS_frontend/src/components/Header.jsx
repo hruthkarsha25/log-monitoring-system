@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function Header({
   activePage,
@@ -102,7 +101,7 @@ export default function Header({
             }
 
             if (e.target.value === "csv") {
-              onExportCsv();
+              onExportCSV();
             }
 
             e.target.value = "";
